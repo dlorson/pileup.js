@@ -45,6 +45,7 @@ function extractVariant(vcfLine: string): Variant {
   return {
     contig: parts[0],
     position: Number(parts[1]),
+    id: parts[2],
     ref: parts[3],
     alt: parts[4],
     vcfLine
