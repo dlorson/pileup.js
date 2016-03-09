@@ -29,7 +29,7 @@ import dataCanvas from 'data-canvas';
 import style from '../style';
 
 
-var READ_HEIGHT = 13;
+var READ_HEIGHT = 9;
 var READ_SPACING = 2;  // vertical pixels between reads
 
 var READ_STRAND_ARROW_WIDTH = 5;
@@ -211,7 +211,7 @@ function renderPileup(ctx: DataCanvasRenderingContext2D,
     ctx.popObject();
   }
 
-  ctx.font = style.TIGHT_TEXT_STYLE;
+  ctx.font = `bold 8px 'Helvetica Neue', Helvetica, Arial, sans-serif`;
   vGroups.forEach(vGroup => drawGroup(vGroup));
 }
 

@@ -31,7 +31,6 @@ function renderGenome(ctx: DataCanvasRenderingContext2D,
   var mode = DisplayMode.getDisplayMode(pxPerLetter);
   var showText = DisplayMode.isText(mode);
 
-  if (mode != DisplayMode.HIDDEN) {
     ctx.textAlign = 'center';
     if (mode == DisplayMode.LOOSE) {
       ctx.font = style.LOOSE_TEXT_STYLE;
@@ -73,7 +72,6 @@ function renderGenome(ctx: DataCanvasRenderingContext2D,
       ctx.restore();
       previousBase = letter;
     }
-  }
 }
 
 

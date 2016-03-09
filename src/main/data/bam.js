@@ -38,7 +38,7 @@ function isAlignmentInRange(read: SamRead,
 }
 
 
-var kMaxFetch = 65536 * 2;
+var kMaxFetch = 65536 * 10;
 
 // Read a single alignment
 function readAlignment(view: jDataView, pos: number,
@@ -50,9 +50,13 @@ function readAlignment(view: jDataView, pos: number,
     return null;
   }
 
-  var readSlice = view.buffer.slice(pos, pos + readLength);
+  var read = null;
 
-  var read = new SamRead(readSlice, offset.clone(), refName);
+  if (pos % 50 == 0) {
+    var readSlice = view.buffer.slice(pos, pos + readLength);
+    var read = new SamRead(readSlice, offset.clone(), refName);
+  }
+
   return {
     read,
     readLength: 4 + readLength
@@ -74,14 +78,16 @@ function readAlignmentsToEnd(buffer: ArrayBuffer,
   var pos = 0;
   offset = offset.clone();
   var blockIndex = 0;
+  var i = 0;
   try {
     while (pos < buffer.byteLength) {
+      i += 1;
       var readData = readAlignment(jv, pos, offset, refName);
       if (!readData) break;
 
       var {read, readLength} = readData;
       pos += readLength;
-      if (isAlignmentInRange(read, idxRange, contained)) {
+      if (read && isAlignmentInRange(read, idxRange, contained)) {
         alignments.push(read);
       }
 
@@ -94,15 +100,19 @@ function readAlignmentsToEnd(buffer: ArrayBuffer,
         blockIndex++;
       }
 
+
       // Optimization: if the last alignment started after the requested range,
       // then no other chunks can possibly contain matching alignments.
       // TODO: use contigInterval.isAfterInterval when that's possible.
-      var range = new ContigInterval(read.refID, read.pos, read.pos + 1);
-      if (range.contig > idxRange.contig ||
-          (range.contig == idxRange.contig && range.start() > idxRange.stop())) {
-        shouldAbort = true;
-        break;
+      if (read) {
+        var range = new ContigInterval(read.refID, read.pos, read.pos + 1);
+        if (range.contig > idxRange.contig ||
+            (range.contig == idxRange.contig && range.start() > idxRange.stop())) {
+          shouldAbort = true;
+          break;
+        }
       }
+
     }
     // Code gets here if the compression block ended exactly at the end of
     // an Alignment.

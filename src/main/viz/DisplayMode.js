@@ -16,7 +16,7 @@ var DisplayMode = {
       return DisplayMode.LOOSE;
     } else if (pxPerLetter >= 10) {
       return DisplayMode.TIGHT;
-    } else if (pxPerLetter >= 1) {
+    } else if (pxPerLetter >= 0.25) {
       return DisplayMode.BLOCKS;
     } else {
       return DisplayMode.HIDDEN;

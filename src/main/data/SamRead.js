@@ -91,6 +91,7 @@ class SamRead /* implements Alignment */ {
   }
 
   _getName(): string {
+    return "empty";
     var jv = this._getJDataView();
     var l_read_name = jv.getUint8(8);
     jv.seek(32);  // the read-name starts at byte 32
