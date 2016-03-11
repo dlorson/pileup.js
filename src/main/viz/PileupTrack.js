@@ -362,8 +362,11 @@ class PileupTrack extends React.Component {
   // Load new reads into the visualization cache.
   updateReads(range: ContigInterval<string>) {
     var anyBefore = this.cache.anyGroupsOverlapping(range);
-    this.props.source.getAlignmentsInRange(range)
-                     .forEach(read => this.cache.addAlignment(read));
+    var alignments = this.props.source.getAlignmentsInRange(range);
+
+    console.log("got " + alignments.length + " alignments in range");
+
+    alignments.forEach(read => this.cache.addAlignment(read));
 
     if (!anyBefore && this.cache.anyGroupsOverlapping(range)) {
       // If these are the first reads to be shown in the visible range,

@@ -142,6 +142,9 @@ function create(spec: BamSpec): AlignmentDataSource {
   var bamFile = spec.indexChunks ?
       new BamFile(new RemoteFile(url), new RemoteFile(indexUrl), spec.indexChunks) :
       new BamFile(new RemoteFile(url), new RemoteFile(indexUrl));
+
+  bamFile.subsamplingRate = spec.subsamplingRate;
+
   return createFromBamFile(bamFile);
 }
 

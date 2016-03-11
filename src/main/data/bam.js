@@ -40,9 +40,20 @@ function isAlignmentInRange(read: SamRead,
 
 var kMaxFetch = 65536 * 10;
 
+
+function subsampleAlignment(pos: number, subsamplingRate: number) {
+  if (subsamplingRate >= 1) {
+    return true;
+  }
+  // the chunk pos of the alignment might not be uniformly distributed,
+  // so use a basic integer hashing function (Knuth) to remap
+  return ((pos * 2654435761) % 1000000 < subsamplingRate * 1000000);
+}
+
 // Read a single alignment
 function readAlignment(view: jDataView, pos: number,
-                       offset: VirtualOffset, refName: string) {
+                       offset: VirtualOffset, refName: string,
+                       subsamplingRate: number) {
   var readLength = view.getInt32(pos);
   pos += 4;
 
@@ -52,9 +63,10 @@ function readAlignment(view: jDataView, pos: number,
 
   var read = null;
 
-  if (pos % 50 == 0) {
+  if (subsampleAlignment(pos, subsamplingRate)) {
     var readSlice = view.buffer.slice(pos, pos + readLength);
     var read = new SamRead(readSlice, offset.clone(), refName);
+
   }
 
   return {
@@ -70,7 +82,8 @@ function readAlignmentsToEnd(buffer: ArrayBuffer,
                              contained: boolean,
                              offset: VirtualOffset,
                              blocks: InflatedBlock[],
-                             alignments: SamRead[]) {
+                             alignments: SamRead[],
+                             subsamplingRate: number) {
   // We use jDataView and ArrayBuffer directly for a speedup over jBinary.
   // This parses reads ~2-3x faster than using ThinAlignment directly.
   var jv = new jDataView(buffer, 0, buffer.byteLength, true /* little endian */);
@@ -82,7 +95,7 @@ function readAlignmentsToEnd(buffer: ArrayBuffer,
   try {
     while (pos < buffer.byteLength) {
       i += 1;
-      var readData = readAlignment(jv, pos, offset, refName);
+      var readData = readAlignment(jv, pos, offset, refName, subsamplingRate);
       if (!readData) break;
 
       var {read, readLength} = readData;
@@ -137,7 +150,8 @@ function fetchAlignments(remoteFile: RemoteFile,
                          refName: string,
                          idxRange: ContigInterval<number>,
                          contained: boolean,
-                         chunks: Chunk[]): Q.Promise<SamRead[]> {
+                         chunks: Chunk[],
+                         subsamplingRate: number): Q.Promise<SamRead[]> {
 
   var numRequests = 0,
       alignments = [],
@@ -182,7 +196,7 @@ function fetchAlignments(remoteFile: RemoteFile,
       if (decomp.byteLength > 0) {
         var {shouldAbort, nextOffset} =
             readAlignmentsToEnd(decomp, refName, idxRange, contained,
-                                chunk.chunk_beg, blocks, alignments);
+                                chunk.chunk_beg, blocks, alignments, subsamplingRate);
         if (shouldAbort) {
           deferred.resolve(alignments);
           return;
@@ -208,13 +222,17 @@ class Bam {
   header: Q.Promise<Object>;
   remoteFile: RemoteFile;
   hasIndexChunks: boolean;
+  subsamplingRate: number;
+
 
   constructor(remoteFile: RemoteFile,
               remoteIndexFile?: RemoteFile,
-              indexChunks?: Object) {
+              indexChunks?: Object,
+              subsamplingRate?: number) {
     this.remoteFile = remoteFile;
     this.index = remoteIndexFile ? new BaiFile(remoteIndexFile, indexChunks) : null;
     this.hasIndexChunks = !!indexChunks;
+    this.subsamplingRate = 1.0;
 
     var sizePromise = this.index ? this.index.getHeaderSize() : Q.when(2 * 65535);
     this.header = sizePromise.then(size => {
@@ -232,6 +250,8 @@ class Bam {
     });
     this.header.done();
   }
+
+
 
   /**
    * Reads the entire BAM file from the remote source and parses it.
@@ -267,7 +287,7 @@ class Bam {
     return this.remoteFile.getBytes(offset.coffset, kMaxFetch).then(gzip => {
       var buf = utils.inflateGzip(gzip);
       var jv = new jDataView(buf, 0, buf.byteLength, true /* little endian */);
-      var readData = readAlignment(jv, offset.uoffset, offset, '');
+      var readData = readAlignment(jv, offset.uoffset, offset, '', 1.0);
       if (!readData) {
         throw `Unable to read alignment at ${offset} in ${this.remoteFile.url}`;
       } else {
@@ -304,11 +324,15 @@ class Bam {
    * contained within the range, or need only overlap it.
    */
   getAlignmentsInRange(range: ContigInterval<string>, opt_contained?: boolean): Q.Promise<SamRead[]> {
+
+    console.log("Fetch with subsamplingRate " + this.subsamplingRate);
+
     var contained = opt_contained || false;
     if (!this.index) {
       throw 'Range searches are only supported on BAMs with BAI indices.';
     }
     var index = this.index;
+    var subsamplingRate = this.subsamplingRate ? this.subsamplingRate : 1.0;
 
     return this.getContigIndex(range.contig).then(({idx, name}) => {
       var def = Q.defer();
@@ -320,7 +344,7 @@ class Bam {
       utils.pipePromise(
         def,
         index.getChunksForInterval(idxRange).then(chunks => {
-          return fetchAlignments(this.remoteFile, name, idxRange, contained, chunks);
+          return fetchAlignments(this.remoteFile, name, idxRange, contained, chunks, subsamplingRate);
         }));
       return def.promise;
     });
