@@ -14,9 +14,11 @@ import type Q from 'q';
 export type Variant = {
   contig: string;
   position: number;
+  id: string;
   ref: string;
   alt: string;
   vcfLine: string;
+  meta: string;
 }
 
 // This is a minimally-parsed line for facilitating binary search.
@@ -25,7 +27,6 @@ type LocusLine = {
   position: number;
   line: string;
 }
-
 
 function extractLocusLine(vcfLine: string): LocusLine {
   var tab1 = vcfLine.indexOf('\t'),
@@ -48,6 +49,7 @@ function extractVariant(vcfLine: string): Variant {
     id: parts[2],
     ref: parts[3],
     alt: parts[4],
+    info: parts[7],
     vcfLine
   };
 }
