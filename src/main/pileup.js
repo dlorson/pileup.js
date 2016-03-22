@@ -26,6 +26,7 @@ import LocationTrack from './viz/LocationTrack';
 import PileupTrack from './viz/PileupTrack';
 import ScaleTrack from './viz/ScaleTrack';
 import VariantTrack from './viz/VariantTrack';
+import AltsTrack from './viz/AltsTrack';
 import Root from './Root';
 
 type GenomeRange = {
@@ -134,7 +135,8 @@ var pileup = {
     location: makeVizObject(LocationTrack),
     scale:    makeVizObject(ScaleTrack),
     variants: makeVizObject(VariantTrack),
-    pileup:   makeVizObject(PileupTrack)
+    pileup:   makeVizObject(PileupTrack),
+    alts:   makeVizObject(AltsTrack)
   },
   version: '0.6.3'
 };

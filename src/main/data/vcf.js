@@ -10,6 +10,7 @@
 import type ContigInterval from '../ContigInterval';
 import type RemoteFile from '../RemoteFile';
 import type Q from 'q';
+import _ from 'underscore';
 
 export type Variant = {
   contig: string;
@@ -18,7 +19,7 @@ export type Variant = {
   ref: string;
   alt: string;
   vcfLine: string;
-  meta: string;
+  info: {[key: string]: string};
 }
 
 // This is a minimally-parsed line for facilitating binary search.
@@ -49,7 +50,7 @@ function extractVariant(vcfLine: string): Variant {
     id: parts[2],
     ref: parts[3],
     alt: parts[4],
-    info: parts[7],
+    info: _.object(_.map(parts[7].split(";"), kv => kv.split("="))),
     vcfLine
   };
 }
