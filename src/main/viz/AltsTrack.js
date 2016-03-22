@@ -47,6 +47,25 @@ class Alt {
     return this.variant.alt;
   }
 
+  type () {
+    return this.variant.info["AT"];
+  }
+
+  description() {
+    switch (this.type()) {
+      case "+":
+        return "ins" + this.alt().length + " (" + this.alt() + ")";
+      case "-":
+        return "del" + this.alt().length + " (" + this.alt() + ")";
+      case "s":
+        return this.alt();
+    }
+  }
+
+  ref() {
+    return this.variant.ref;
+  }
+
   position() {
     return this.variant.position;
   }
@@ -62,32 +81,101 @@ class Alt {
 }
 
 
-class AltsTrack extends React.Component {
+function colorForAlt(alt) {
+  return alt.isIndel() ? "#666" : style.BASE_COLORS[alt.alt()];
+}
 
-  props: VizProps & {source: VcfDataSource};
-  state: void;  // no state
+class AltsPopup extends React.Component {
 
+  props: {};
 
-  constructor(props: Object) {
-    super(props);
+  styleForAlt(alt) {
+    return {
+      color: "white",
+      backgroundColor: colorForAlt(alt)
+    };
+  }
+
+  totalDepth() {
+    var sumAlt = _.reduce(this.props.alts, (sum, alt) => sum + alt.altDepth(), 0)
+    var ref = this.props.alts[0] ? this.props.alts[0].refDepth() : 0;
+
+    return sumAlt + ref;
+  }
+
+  renderAlt(alt) {
+    return <div key={alt.alt()}>
+      <b className="alt-base" style={this.styleForAlt(alt)}>{alt.description()}</b>
+      <span className="alt-frequency">{(alt.altFrequency() * 100).toFixed(1)}%</span>
+    </div>;
   }
 
   render(): any {
-    return <canvas onMouseMove={this.handleMouseMove.bind(this)} />;
+    var alts = this.props.alts;
+    return (
+      <div className="alts-popup" style={this.props.style}>
+        <span>{this.props.alts[0] ? this.props.alts[0].position() : ""}</span>
+        <hr/>
+        <b className="ref-base" style={ { backgroundColor: "#eee", color: "#aaa"} }>{alts[0].ref()}</b>
+        <span className="ref-frequency">{(alts[0].refDepth() / this.totalDepth() * 100).toFixed(1)}%</span>
+        <hr/>
+        { _.map(alts, alt => this.renderAlt(alt)) }
+      </div>
+    );
+  }
+
+
+}
+
+
+class AltsTrack extends React.Component {
+
+  props: VizProps & {source: VcfDataSource};
+  state: any;
+
+  constructor(props: Object) {
+    super(props);
+    this.state = { popup: {show: false, alts: [], x: 10, y: 10 } };
+  }
+
+  popupStyle() {
+    return {
+      left: this.state.popup.x,
+      top: this.state.popup.y
+    };
+  }
+
+  render(): any {
+    return (
+      <div>
+        <canvas onMouseMove={this.handleMouseMove.bind(this)} />
+        { this.state.popup.show ? <AltsPopup alts={this.state.popup.alts} style={this.popupStyle()} /> : null }
+      </div>
+    );
+  }
+
+  canvas(): any {
+    var node = ReactDOM.findDOMNode(this);
+    return node.getElementsByTagName("canvas")[0];
   }
 
   handleMouseMove(reactEvent: any) {
     var ev = reactEvent.nativeEvent,
     x = ev.offsetX,
     y = ev.offsetY,
-    canvas = ReactDOM.findDOMNode(this),
+    canvas = this.canvas(),
     ctx = canvasUtils.getContext(canvas),
     trackingCtx = new dataCanvas.ClickTrackingContext(ctx, x, y);
     this.renderScene(trackingCtx);
     var alts = trackingCtx.hit && trackingCtx.hit[0];
-    if (alts) {
-      console.log(JSON.stringify(alts[0]));
-    }
+    this.setState({ 
+      popup: { 
+        show: !!alts, 
+        alts: alts,
+        x: Math.round(x) - 0.5,
+        y: Math.round(y) + 20.5
+      }
+    });
   }
 
   componentDidMount() {
@@ -110,7 +198,7 @@ class AltsTrack extends React.Component {
   }
 
   updateVisualization() {
-    var canvas = ReactDOM.findDOMNode(this),
+    var canvas = this.canvas(),
     {width, height} = this.props;
 
     // Hold off until height & width are known.
@@ -126,7 +214,7 @@ class AltsTrack extends React.Component {
 
   renderScene(ctx: DataCanvasRenderingContext2D) {
 
-    const SNP_HEIGHT = 190;
+    const SNP_HEIGHT = 290;
 
 
     var scale = this.getScale(),
@@ -152,20 +240,15 @@ class AltsTrack extends React.Component {
       ctx.strokeStyle = "#fff";
       ctx.fillRect(x - 0.5, y - 0.5, width, SNP_HEIGHT);
       ctx.strokeRect(x - 0.5, y - 0.5, width, SNP_HEIGHT);
-      ctx.popObject();
 
       var altY = Math.round(y);
-
 
       alts.forEach(alt => {
 
         var height = Math.round(alt.altFrequency() * SNP_HEIGHT);
+        height = Math.max(height, 2);
 
-        if (!alt.isIndel()) {
-          ctx.fillStyle = style.BASE_COLORS[alt.alt()];
-        } else {
-          ctx.fillStyle = "#666";
-        }
+        ctx.fillStyle = colorForAlt(alt);
         ctx.strokeStyle = "#fff";
         ctx.fillRect(x - 0.5, altY - 0.5, width, height);
         ctx.strokeRect(x - 0.5, altY - 0.5, width, height);
@@ -186,9 +269,6 @@ class AltsTrack extends React.Component {
     var variants = this.props.source.getFeaturesInRange(interval);
     return _.map(variants, v => new Alt(v));
   }
-
-
-
 
 
 }
