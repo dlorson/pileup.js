@@ -50,7 +50,7 @@ function extractVariant(vcfLine: string): Variant {
     id: parts[2],
     ref: parts[3],
     alt: parts[4],
-    info: _.object(_.map(parts[7].split(";"), kv => kv.split("="))),
+    info: _.object(_.map((parts[7] || "").split(";"), kv => kv.split("="))),
     vcfLine
   };
 }

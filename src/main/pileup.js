@@ -79,6 +79,7 @@ function create(elOrId: string|Element, params: PileupParams): Pileup {
 
   var reactElement =
       ReactDOM.render(<Root referenceSource={referenceTrack.source}
+                            regionSource={params.regionSource}
                             tracks={vizTracks}
                             initialRange={params.range} />, el);
   return {

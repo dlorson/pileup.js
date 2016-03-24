@@ -116,10 +116,14 @@ class ImmediateBigBed {
     if (contig in this.contigMap) return this.contigMap[contig];
     var chr = 'chr' + contig;
     if (chr in this.contigMap) return this.contigMap[chr];
+    return -1;
     throw `Invalid contig ${contig}`;
   }
 
   getChrIdInterval(range: ContigInterval<string>): ContigInterval<number> {
+    if (!range) {
+      return null;
+    }
     return new ContigInterval(
         this.getContigId(range.contig), range.start(), range.stop());
   }
@@ -143,15 +147,18 @@ class ImmediateBigBed {
   findOverlappingBlocks(range: ContigInterval<number>) {
     // Do a recursive search through the index tree
     var matchingBlocks = [];
-    var tupleRange = [[range.contig, range.start()],
-                      [range.contig, range.stop()]];
+    var tupleRange = null;
+    if (range) {
+      tupleRange = [[range.contig, range.start()],
+                    [range.contig, range.stop()]];
+    }
     var find = function(node) {
       if (node.contents) {
         node.contents.forEach(find);
       } else {
         var nodeRange = [[node.startChromIx, node.startBase],
                          [node.endChromIx, node.endBase]];
-        if (utils.tupleRangeOverlaps(nodeRange, tupleRange)) {
+        if (!range || utils.tupleRangeOverlaps(nodeRange, tupleRange)) {
           matchingBlocks.push(node);
         }
       }
@@ -163,6 +170,9 @@ class ImmediateBigBed {
 
   // Internal function for fetching features by block.
   fetchFeaturesByBlock(range: ContigInterval<number>): Q.Promise<ChrIdBedBlock[]> {
+    if (range && range.contig == -1) {
+      return Q.when([]);
+    }
     var blocks = this.findOverlappingBlocks(range);
     if (blocks.length === 0) {
       return Q.when([]);

@@ -11,9 +11,11 @@ import _ from 'underscore';
 
 import utils from './utils';
 import Interval from './Interval';
+import type {BigBedDataSource} from './sources/BigBedDataSource';
 
 type Props = {
   range: ?GenomeRange;
+  regionSource: BigBedDataSource;
   contigList: string[];
   onChange: (newRange: GenomeRange)=>void;
 };
@@ -55,6 +57,21 @@ class Controls extends React.Component {
 
   handleContigChange(e: SyntheticEvent) {
     this.props.onChange(this.completeRange({contig: this.refs.contig.value}));
+  }
+
+  handleRegionChange(e: SyntheticEvent) {
+    var gene = _.findWhere(this.props.regionSource.getGenes(), { id: this.refs.region.value });
+    if (!gene) {
+      return;
+    }
+
+    var range = {
+      contig: gene.position.contig,
+      start: gene.position.interval.start - 100,
+      stop: gene.position.interval.stop + 100
+    };
+
+    this.props.onChange(range);
   }
 
   handleFormSubmit(e: SyntheticEvent) {
@@ -103,9 +120,14 @@ class Controls extends React.Component {
         ? this.props.contigList.map((contig, i) => <option key={i}>{contig}</option>)
         : null;
 
+    var regionOptions = this.props.regionSource.getGenes().map((gene, i) => <option key={i}>{gene.id}</option>);
+
     // Note: input values are set in componentDidUpdate.
     return (
       <form className='controls' onSubmit={this.handleFormSubmit.bind(this)}>
+        <select ref='region' onChange={this.handleRegionChange.bind(this)}>
+          {regionOptions}
+        </select>{' '}
         <select ref='contig' onChange={this.handleContigChange.bind(this)}>
           {contigOptions}
         </select>{' '}
@@ -127,6 +149,10 @@ class Controls extends React.Component {
 
   componentDidMount() {
     this.updateRangeUI();
+    this.props.regionSource.on('newdata', () => {
+      this.forceUpdate();
+    });
+    this.props.regionSource.fetchAll();
   }
 }
 

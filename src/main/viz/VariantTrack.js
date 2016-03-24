@@ -71,7 +71,7 @@ class VariantTrack extends React.Component {
         variants = this.props.source.getFeaturesInRange(interval),
         scale = this.getScale(),
         height = this.props.height,
-        y = height - style.VARIANT_HEIGHT - 1;
+        y = 4;
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.reset();

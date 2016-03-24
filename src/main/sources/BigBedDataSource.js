@@ -79,13 +79,35 @@ function createFromBigBedFile(remoteSource: BigBed): BigBedSource {
     return results;
   }
 
+  function getGenes(): Gene[] {
+    return _.map(genes, gene => gene);
+  }
+
+  function fetchAll() {
+
+    if (genes.length > 0) {
+      return Q.when();
+    }
+
+    return remoteSource.getFeatureBlocksOverlapping(null).then(featureBlocks => {
+      featureBlocks.forEach(fb => {
+        var genes = fb.rows.map(parseBedFeature);
+        genes.forEach(gene => {
+          addGene(gene);
+        });
+        o.trigger('newdata', null);
+      });
+    });
+  }
+
   function fetch(range: GenomeRange) {
     var interval = new ContigInterval(range.contig, range.start, range.stop);
 
     // Check if this interval is already in the cache.
-    if (interval.isCoveredBy(coveredRanges)) {
+    // caching seems to fail for overlapping annotations! -> disabled
+/*    if (interval.isCoveredBy(coveredRanges)) {
       return Q.when();
-    }
+    }*/
 
     coveredRanges.push(interval);
     coveredRanges = ContigInterval.coalesce(coveredRanges);
@@ -106,6 +128,9 @@ function createFromBigBedFile(remoteSource: BigBed): BigBedSource {
       fetch(newRange).done();
     },
     getGenesInRange,
+    getGenes,
+
+    fetchAll,
 
     // These are here to make Flow happy.
     on: () => {},

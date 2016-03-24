@@ -5,6 +5,7 @@
 'use strict';
 
 import type {TwoBitSource} from './sources/TwoBitDataSource';
+import type {BigBedDataSource} from './sources/BigBedDataSource';
 import type {VisualizedTrack, VizWithOptions} from './types';
 
 import React from 'react';
@@ -13,6 +14,7 @@ import Menu from './Menu';
 import VisualizationWrapper from './VisualizationWrapper';
 
 type Props = {
+  regionSource: BigBedDataSource;
   referenceSource: TwoBitSource;
   tracks: VisualizedTrack[];
   initialRange: GenomeRange;
@@ -151,6 +153,7 @@ class Root extends React.Component {
           <div className='track-content'>
             <Controls contigList={this.state.contigList}
                       range={this.state.range}
+                      regionSource={this.props.regionSource}
                       onChange={this.handleRangeChange.bind(this)} />
           </div>
         </div>
