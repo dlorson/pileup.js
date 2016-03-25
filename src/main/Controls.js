@@ -126,6 +126,7 @@ class Controls extends React.Component {
     return (
       <form className='controls' onSubmit={this.handleFormSubmit.bind(this)}>
         <select ref='region' onChange={this.handleRegionChange.bind(this)}>
+          <option key="-1">Select a region...</option>
           {regionOptions}
         </select>{' '}
         <select ref='contig' onChange={this.handleContigChange.bind(this)}>
