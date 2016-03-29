@@ -23,10 +23,10 @@ import style from '../style';
 
 
 var COMPLEMENTS = {
-  A: "C",
-  C: "A",
-  T: "G",
-  G: "T"
+  A: "T",
+  T: "A",
+  C: "G",
+  G: "C"
 };
 
 
