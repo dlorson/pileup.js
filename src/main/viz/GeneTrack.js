@@ -54,17 +54,23 @@ function drawGeneName(ctx: CanvasRenderingContext2D,
                       clampedScale: (x: number)=>number,
                       geneLineY: number,
                       gene: Gene,
-                      textIntervals: Interval[]) {
+                      textIntervals: Interval[],
+                      lengths: number[]) {
   var p = gene.position,
       centerX = 0.5 * (clampedScale(1 + p.start()) + clampedScale(1 + p.stop()));
   var name = gene.name || gene.id;
+  var lenStr = lengths[0] + " - " + lengths[1] + " - " + lengths[2];
   var textWidth = ctx.measureText(name).width;
   var textInterval = new Interval(centerX - 0.5 * textWidth,
                                   centerX + 0.5 * textWidth);
   if (!_.any(textIntervals, iv => textInterval.intersects(iv))) {
     textIntervals.push(textInterval);
     var baselineY = geneLineY + style.GENE_FONT_SIZE + style.GENE_TEXT_PADDING;
+    ctx.font = `${style.GENE_FONT}`;
     ctx.fillText(name, centerX, baselineY);
+    ctx.font = `${style.GENE_SUB_FONT}`;
+    ctx.fillStyle = style.GENE_SUB_COLOR;
+    ctx.fillText(lenStr, centerX, baselineY + 12);
   }
 }
 
@@ -80,7 +86,7 @@ class GeneTrack extends React.Component {
   }
 
   render(): any {
-    return <canvas />;
+    return <canvas ref="canvas"/>;
   }
 
   componentDidMount() {
@@ -129,11 +135,10 @@ class GeneTrack extends React.Component {
     var ctx = dataCanvas.getDataContext(canvasUtils.getContext(canvas));
     ctx.reset();
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
+    
     var geneLineY = Math.round(height / 4);
     var textIntervals = [];  // x-intervals with rendered gene names, to avoid over-drawing.
     // TODO: don't pull in genes via state.
-    ctx.font = `${style.GENE_FONT_SIZE}px ${style.GENE_FONT}`;
     ctx.textAlign = 'center';
     this.state.genes.forEach(gene => {
       if (!gene.position.chrIntersects(range)) return;
@@ -155,6 +160,7 @@ class GeneTrack extends React.Component {
       });
 
       var introns = gene.position.interval.complementIntervals(gene.exons);
+
       introns.forEach(range => {
         drawArrow(ctx, clampedScale, range, geneLineY + 0.5, gene.strand);
       });
@@ -164,11 +170,18 @@ class GeneTrack extends React.Component {
         drawArrow(ctx, clampedScale, range, geneLineY + 0.5, gene.strand);
       });
 
-      drawGeneName(ctx, clampedScale, geneLineY, gene, textIntervals);
+      var lengths = [
+        gene.exons[0].stop - gene.exons[0].start,
+        introns[0].stop - introns[0].start,  
+        gene.exons[1].stop - gene.exons[1].start 
+        ];
+
+      drawGeneName(ctx, clampedScale, geneLineY, gene, textIntervals, lengths);
 
       ctx.popObject();
     });
   }
+
 }
 
 GeneTrack.displayName = 'genes';

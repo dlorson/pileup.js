@@ -24,10 +24,12 @@ module.exports = {
 
   // Gene track
   GENE_ARROW_SIZE: 4,
-  GENE_COLOR: 'blue',  // color of the gene line, exons, text, etc.
+  GENE_COLOR: '#0099ff',  // color of the gene line, exons, text, etc.
+  GENE_SUB_COLOR: '#aaaaaa',  // color of the gene line, exons, text, etc.
   GENE_COMPLEMENT_COLOR: 'white',  // a color visible on top of GENE_COLOR
-  GENE_FONT: `'Helvetica Neue', Helvetica, Arial, sans-serif`,
-  GENE_FONT_SIZE: 16,
+  GENE_FONT: `bold 12px 'Helvetica Neue', Helvetica, Arial, sans-serif`,
+  GENE_SUB_FONT: `bold 9px 'Helvetica Neue', Helvetica, Arial, sans-serif`,
+  GENE_FONT_SIZE: 12,
   GENE_TEXT_PADDING: 5,  // space between bottom of coding exon & top of gene name
 
   // Pileup track
@@ -62,7 +64,7 @@ module.exports = {
 
   // Variant Track
   VARIANT_STROKE: 'blue',
-  VARIANT_FILL: '#ddd',
+  VARIANT_FILL: '#888',
   VARIANT_HEIGHT: 14,
 
 };

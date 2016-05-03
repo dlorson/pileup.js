@@ -30,7 +30,7 @@ class VariantTrack extends React.Component {
   }
 
   render(): any {
-    return <canvas onClick={this.handleClick} />;
+    return <canvas onClick={this.handleClick.bind(this)} />;
   }
 
   componentDidMount() {
@@ -83,26 +83,33 @@ class VariantTrack extends React.Component {
     variants.forEach(variant => {
       ctx.pushObject(variant);
       var x = Math.round(scale(variant.position));
-      var width = Math.round(scale(variant.position + 1)) - 1 - x;
+      var width = Math.max(Math.round(scale(variant.position + 1)) - 1 - x, 1);
 
       ctx.fillStyle = style.VARIANT_FILL;
-      ctx.strokeStyle = style.VARIANT_STROKE;
-      ctx.fillRect(x - 0.5, y - 0.5, width, style.VARIANT_HEIGHT);
-      ctx.strokeRect(x - 0.5, y - 0.5, width, style.VARIANT_HEIGHT);
-      ctx.popObject();
+      //ctx.strokeStyle = style.VARIANT_STROKE;
+      ctx.fillRect(x, y, width, style.VARIANT_HEIGHT);
+      //ctx.strokeRect(x - 0.5, y - 0.5, width, style.VARIANT_HEIGHT);
 
-      ctx.fillStyle = "black";
 
-      var textWidth = ctx.measureText(variant.id).width;
+      var text = variant.info["AA"];
 
-      if (previousX > x + width * 0.5 - textWidth * 0.5) {
+      var textWidth = ctx.measureText(text).width;
+
+      if (previousX > x + width * 0.5 - textWidth * 0.5 || level > 10) {
         level += 1;
       } else {
         level = 0;
       }
 
+      var textX = x - textWidth * 0.5 + width * 0.5;
+      var textY = y + style.VARIANT_HEIGHT + 12 + level * 10;
+
       previousX = x + textWidth * 0.5 + width * 0.5 + 2;
-      ctx.fillText(variant.id, x - textWidth * 0.5 + width * 0.5, y + style.VARIANT_HEIGHT + 12 + level * 10);
+      ctx.fillStyle = "white";
+      ctx.fillRect(textX, textY - 9, textWidth, 9);
+      ctx.fillStyle = "black";
+      ctx.fillText(text, textX, textY);
+      ctx.popObject();
 
     });
 
@@ -119,8 +126,8 @@ class VariantTrack extends React.Component {
     this.renderScene(trackingCtx);
     var variant = trackingCtx.hit && trackingCtx.hit[0];
     var alert = window.alert || console.log;
-    if (variant) {
-      alert(JSON.stringify(variant));
+    if (variant && variant.id) {
+      window.open("http://cancer.sanger.ac.uk/cosmic/mutation/overview?id=" + variant.id.replace("COSM", ""));
     }
   }
 }

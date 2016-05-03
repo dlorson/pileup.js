@@ -88,6 +88,7 @@ class Root extends React.Component {
             range={this.state.range}
             onRangeChange={this.handleRangeChange.bind(this)}
             source={track.source}
+            disableDragging={track.track.disableDragging}
             referenceSource={this.props.referenceSource}
           />);
     

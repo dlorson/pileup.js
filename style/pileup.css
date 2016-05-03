@@ -5,7 +5,7 @@
  */
 
 #pileup {
-  top: 50px !important;
+  top: 10px !important;
 }
 
 .pileup-root {
@@ -19,8 +19,8 @@
   flex-direction: row;
 
   border-bottom: 1px dashed rgba(1, 1, 1, 0.2);
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 body {
@@ -131,6 +131,16 @@ body {
   flex: 0 0 40px;  /* fixed height */
 }
 
+/* reference track */
+.pileup-root > .dom-reference {
+  flex: 0 0 40px;  /* fixed height */
+}
+
+.pileup-root > .dom-reference .fwd {
+  font-size: 12px;
+  font-weight: bold;
+}
+
 .background {
   fill: white;
 }
@@ -221,7 +231,7 @@ body {
 
 /* variants */
 .pileup-root > .variants {
-  flex: 0 0 100px;  /* fixed height */
+  flex: 0 0 140px;  /* fixed height */
 }
 .variants rect {
   fill: #ddd;

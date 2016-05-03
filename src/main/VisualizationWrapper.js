@@ -55,11 +55,11 @@ class VisualizationWrapper extends React.Component {
     window.addEventListener('resize', () => this.updateSize());
     this.updateSize();
 
-    if (this.props.range && !this.hasDragBeenInitialized) this.addDragInterface();
+    if (this.props.range && !this.props.disableDragging && !this.hasDragBeenInitialized) this.addDragInterface();
   }
 
   componentDidUpdate(): any {
-    if (this.props.range && !this.hasDragBeenInitialized) this.addDragInterface();
+    if (this.props.range && !this.props.disableDragging && !this.hasDragBeenInitialized) this.addDragInterface();
   }
 
   getScale(): (num: number)=>number {
