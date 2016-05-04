@@ -20,6 +20,18 @@ import canvasUtils from './canvas-utils';
 import dataCanvas from 'data-canvas';
 import style from '../style';
 
+function colorForImportance(importance) {
+
+  var colors = ['#008080','#2d8f83','#47a084','#5eaf84','#75bf81','#8ecf7c','#a8de73','#c6ed62','#e8fa40','#ffee2f','#ffcd4d','#ffac5b','#f78a60','#ea6b5c','#da4c52','#c42e41','#ab1228','#8b0000']
+
+  if (!importance && importance != 0)
+    return '#aaaaaa';
+
+  var idx = Math.round(importance * colors.length);
+  idx = Math.min(idx, colors.length - 1);
+
+  return colors[idx];
+}
 
 class VariantTrack extends React.Component {
   props: VizProps & {source: VcfDataSource};
@@ -85,7 +97,7 @@ class VariantTrack extends React.Component {
       var x = Math.round(scale(variant.position));
       var width = Math.max(Math.round(scale(variant.position + 1)) - 1 - x, 1);
 
-      ctx.fillStyle = style.VARIANT_FILL;
+      ctx.fillStyle = colorForImportance(variant.info["IMPORTANCE"]);
       ctx.fillRect(x, y, width, style.VARIANT_HEIGHT);
 
       var text = variant.info["TITLE"];
@@ -123,7 +135,7 @@ class VariantTrack extends React.Component {
     this.renderScene(trackingCtx);
     var variant = trackingCtx.hit && trackingCtx.hit[0];
     var alert = window.alert || console.log;
-    if (variant && && variant.info && variant.info["LINK"]) {
+    if (variant && variant.info && variant.info["LINK"]) {
       window.open(variant.info["LINK"]);
     }
   }

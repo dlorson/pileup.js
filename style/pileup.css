@@ -238,7 +238,7 @@ canvas.needle {
 
 /* variants */
 .pileup-root > .variants {
-  flex: 0 0 140px;  /* fixed height */
+  flex: 0 0 100px;  /* fixed height */
 }
 .variants rect {
   fill: #ddd;
