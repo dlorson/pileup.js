@@ -74,6 +74,11 @@ function drawGeneName(ctx: CanvasRenderingContext2D,
   }
 }
 
+
+function drawCodons() {
+  this.props.source.getRangeAsString(this.props.range);
+}
+
 class GeneTrack extends React.Component {
   props: VizProps & { source: BigBedSource };
   state: {genes: Gene[]};

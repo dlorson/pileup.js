@@ -56,6 +56,13 @@ body {
   display: block;
 }
 
+canvas.needle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events:none;
+}
+
 /* controls */
 .pileup-root > .controls {
   flex: 0 0 30px;  /* fixed height */

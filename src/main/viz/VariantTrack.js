@@ -86,16 +86,13 @@ class VariantTrack extends React.Component {
       var width = Math.max(Math.round(scale(variant.position + 1)) - 1 - x, 1);
 
       ctx.fillStyle = style.VARIANT_FILL;
-      //ctx.strokeStyle = style.VARIANT_STROKE;
       ctx.fillRect(x, y, width, style.VARIANT_HEIGHT);
-      //ctx.strokeRect(x - 0.5, y - 0.5, width, style.VARIANT_HEIGHT);
 
-
-      var text = variant.info["AA"];
+      var text = variant.info["TITLE"];
 
       var textWidth = ctx.measureText(text).width;
 
-      if (previousX > x + width * 0.5 - textWidth * 0.5 || level > 10) {
+      if (previousX > x + width * 0.5 - textWidth * 0.5 && level < 6) {
         level += 1;
       } else {
         level = 0;
@@ -126,8 +123,8 @@ class VariantTrack extends React.Component {
     this.renderScene(trackingCtx);
     var variant = trackingCtx.hit && trackingCtx.hit[0];
     var alert = window.alert || console.log;
-    if (variant && variant.id) {
-      window.open("http://cancer.sanger.ac.uk/cosmic/mutation/overview?id=" + variant.id.replace("COSM", ""));
+    if (variant && && variant.info && variant.info["LINK"]) {
+      window.open(variant.info["LINK"]);
     }
   }
 }

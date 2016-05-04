@@ -12,6 +12,8 @@ import React from 'react';
 import Controls from './Controls';
 import Menu from './Menu';
 import VisualizationWrapper from './VisualizationWrapper';
+import ReactDOM from 'react-dom';
+import canvasUtils from './viz/canvas-utils';
 
 type Props = {
   regionSource: BigBedDataSource;
@@ -47,8 +49,20 @@ class Root extends React.Component {
     if (!this.state.range) {
       this.handleRangeChange(this.props.initialRange);
     }
+
+    window.addEventListener('resize', () => this.updateSize());
+    this.updateSize();
     // in case the contigs came in between getInitialState() and here.
     this.setState({contigList: this.props.referenceSource.contigList()});
+  }
+
+
+  updateSize(): any {
+    var parentDiv = ReactDOM.findDOMNode(this).parentNode;
+    this.setState({
+      width: parentDiv.offsetWidth,
+      height: parentDiv.offsetHeight
+    });
   }
 
   handleRangeChange(newRange: GenomeRange) {
@@ -159,6 +173,7 @@ class Root extends React.Component {
           </div>
         </div>
         {trackEls}
+        <canvas className='needle' ref='needle' style={{ width: this.state.width, height: this.state.height }} />
       </div>
     );
   }
